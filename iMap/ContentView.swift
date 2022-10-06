@@ -41,9 +41,12 @@ struct ContentView: View {
                 annotationItems: viewModel.cities
             ) {
                 city in
-                MapPin(coordinate: city.coordinate, tint: .accentColor)
+                MapMarker(coordinate: city.coordinate, tint: .accentColor)
             }
-            .onAppear(perform: viewModel.fit)
+            //.onAppear(perform: viewModel.fit)
+            .task {
+                viewModel.fit()
+            }
             .ignoresSafeArea()
         }
             
