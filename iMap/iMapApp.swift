@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct iMapApp: App {
+
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(viewModel: PinsViewModel(cities: []))
         }
     }
 }

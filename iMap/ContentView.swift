@@ -13,29 +13,38 @@ struct City: Identifiable {
     let coordinate: CLLocationCoordinate2D
 }
 
-
+final class PinsViewModel: ObservableObject {
+    @Published var mapRect = MKMapRect()
+    let cities: [City]
+    
+    init(cities: [City]) {
+        self.cities = cities
+    }
+    
+    func fit(){
+        let points = cities.map(\.coordinate).map(MKMapPoint.init)
+        mapRect = points.reduce(MKMapRect.null){rect, point in
+            let newRect = MKMapRect(origin: point, size: MKMapSize())
+            return rect.union(newRect)
+        }
+    }
+}
 
 struct ContentView: View {
-    @State private var cities = [
-        City(coordinate: .init(latitude: 40.7128, longitude: 74.006)),
-        City(coordinate: .init(latitude: 37.7749, longitude: 122.4194)),
-        City(coordinate: .init(latitude: 47.6062, longitude: 122.3321))
-    ]
-    //@State private var userTrackingMode: MapUserTrackingMode = .follow
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 25.7617, longitude: 80.1918),
-        span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
+    
+    @ObservedObject var viewModel: PinsViewModel
     
     var body: some View {
         VStack{
-            Map(coordinateRegion: $region, annotationItems: cities){ city in
-                MapAnnotation(coordinate: city.coordinate) {
-                    Circle()
-                        .stroke(Color.red)
-                        .frame(width: 44, height: 44)
-                }
+            Map(
+                mapRect: $viewModel.mapRect,
+                annotationItems: viewModel.cities
+            ) {
+                city in
+                MapPin(coordinate: city.coordinate, tint: .accentColor)
             }
-                .ignoresSafeArea()
+            .onAppear(perform: viewModel.fit)
+            .ignoresSafeArea()
         }
             
     }
@@ -43,6 +52,10 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(viewModel: PinsViewModel(cities: [
+            City(coordinate: .init(latitude: 40.7128, longitude: 74.006)),
+            City(coordinate: .init(latitude: 37.7749, longitude: 122.4194)),
+            City(coordinate: .init(latitude: 47.6062, longitude: 122.3321))
+        ]))
     }
 }
